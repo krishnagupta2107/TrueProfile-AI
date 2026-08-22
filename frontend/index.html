@@ -578,6 +578,8 @@
           document.getElementById('in-image-url').value = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
           document.getElementById('in-file').value = '';
         }
+      }
+
       function setSlider(id, valId, val) {
         const el = document.getElementById(id);
         if (el) el.value = val;
@@ -637,34 +639,100 @@
         if (uInput) uInput.focus();
       }
 
+      function showDialog(title, message, type = 'warning', details = []) {
+        const modal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMsg = document.getElementById('modal-message');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalDetails = document.getElementById('modal-details');
+        const modalBox = document.getElementById('modal-box');
+
+        modalTitle.innerText = title;
+        modalMsg.innerText = message;
+
+        if (type === 'error') {
+          modalIcon.innerHTML = '❌';
+          modalBox.className = 'relative w-full max-w-md border-2 border-red-500/80 bg-obsidian p-6 shadow-[0_0_40px_rgba(239,68,68,0.4)] backdrop-blur-xl';
+        } else if (type === 'info') {
+          modalIcon.innerHTML = 'ℹ️';
+          modalBox.className = 'relative w-full max-w-md border-2 border-gold/80 bg-obsidian p-6 shadow-[0_0_40px_rgba(212,175,55,0.4)] backdrop-blur-xl';
+        } else {
+          modalIcon.innerHTML = '⚠️';
+          modalBox.className = 'relative w-full max-w-md border-2 border-amber/80 bg-obsidian p-6 shadow-[0_0_40px_rgba(245,158,11,0.4)] backdrop-blur-xl';
+        }
+
+        modalDetails.innerHTML = '';
+        if (details && details.length > 0) {
+          modalDetails.classList.remove('hidden');
+          details.forEach(d => {
+            const li = document.createElement('li');
+            li.className = 'text-xs font-mono text-sand/90 flex items-start gap-1.5';
+            li.innerHTML = `<span class="text-gold">›</span> <span>${d}</span>`;
+            modalDetails.appendChild(li);
+          });
+        } else {
+          modalDetails.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function closeDialog() {
+        const modal = document.getElementById('custom-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+
       async function runManualAnalysis() {
         const btn = document.getElementById('scan-btn');
         const btnText = document.getElementById('btn-text');
 
-        btnText.innerText = "Executing 5-Model Fusion Pipeline...";
-        btn.classList.add('opacity-75', 'pointer-events-none');
-        
+        // Validation Checks
+        const ageVal = document.getElementById('in-age').value.trim();
+        const postsVal = document.getElementById('in-posts').value.trim();
+        const followersVal = document.getElementById('in-followers').value.trim();
+        const followingVal = document.getElementById('in-following').value.trim();
+        const fileInput = document.getElementById('in-file');
+        const imageUrl = document.getElementById('in-image-url').value.trim();
+
+        const missingFields = [];
+        if (ageVal === '') missingFields.push('Account Age (Days)');
+        if (postsVal === '') missingFields.push('Posts per Day');
+        if (followersVal === '') missingFields.push('Followers Count');
+        if (followingVal === '') missingFields.push('Following Count');
+
+        if (missingFields.length > 0) {
+          showDialog(
+            'Missing Required Attributes',
+            'Please provide the following telemetry values so the AI models can compute an authentic risk score:',
+            'warning',
+            missingFields
+          );
+          return;
+        }
+
         const username = document.getElementById('in-username').value.trim() || 'unnamed_account';
         const formData = new FormData();
         formData.append('username', username);
-        formData.append('account_age_days', parseInt(document.getElementById('in-age').value) || 0);
-        formData.append('followers', parseInt(document.getElementById('in-followers').value) || 0);
-        formData.append('following', parseInt(document.getElementById('in-following').value) || 0);
-        formData.append('posts_per_day', parseFloat(document.getElementById('in-posts').value) || 0.0);
+        formData.append('account_age_days', parseInt(ageVal) || 0);
+        formData.append('followers', parseInt(followersVal) || 0);
+        formData.append('following', parseInt(followingVal) || 0);
+        formData.append('posts_per_day', parseFloat(postsVal) || 0.0);
         formData.append('profile_completeness', parseFloat(document.getElementById('in-completeness').value) || 0.5);
         formData.append('follow_burst_rate', parseFloat(document.getElementById('in-burst').value) || 0.0);
         formData.append('posting_variance', parseFloat(document.getElementById('in-variance').value) || 0.0);
         formData.append('engagement_rate', parseFloat(document.getElementById('in-engagement').value) || 0.0);
 
-        const fileInput = document.getElementById('in-file');
         if (fileInput.files && fileInput.files[0]) {
           formData.append('image', fileInput.files[0]);
         }
-
-        const imageUrl = document.getElementById('in-image-url').value.trim();
         if (imageUrl) {
           formData.append('profile_image_url', imageUrl);
         }
+
+        btnText.innerText = "Executing 5-Model Fusion Pipeline...";
+        btn.classList.add('opacity-75', 'pointer-events-none');
 
         try {
           const apiBase = window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : 'http://localhost:8000';
@@ -675,7 +743,7 @@
           
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.detail || `Server returned ${res.status}`);
+            throw new Error(errData.detail || `Server returned status code ${res.status}`);
           }
           
           const data = await res.json();
@@ -780,7 +848,12 @@
           }
           
         } catch (e) {
-          alert(`Error auditing profile: ${e.message}. Ensure FastAPI is running on port 8000.`);
+          showDialog(
+            'API Connection Error',
+            `Failed to communicate with TrueProfile AI Backend API: ${e.message}`,
+            'error',
+            ['Verify that uvicorn is running on port 8000', 'Check network console for CORS or endpoint status']
+          );
         } finally {
           btnText.innerText = "Audit Real Profile Data";
           btn.classList.remove('opacity-75', 'pointer-events-none');
@@ -802,6 +875,22 @@
         }
       }
     </script>
+
+    <!-- Custom Glassmorphism Modal Dialog Box -->
+    <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-obsidian/80 backdrop-blur-sm p-4">
+      <div id="modal-box" class="relative w-full max-w-md border-2 border-gold bg-obsidian p-6 shadow-[0_0_40px_rgba(212,175,55,0.4)]">
+        <div class="flex items-start gap-4">
+          <span id="modal-icon" class="text-3xl">⚠️</span>
+          <div class="flex-1">
+            <h3 id="modal-title" class="text-lg font-bold text-gold mb-1">Attention</h3>
+            <p id="modal-message" class="text-sm leading-relaxed text-sand/90 mb-3"></p>
+            <ul id="modal-details" class="space-y-1 bg-royal/10 border border-gold/20 p-3 rounded mb-4 hidden"></ul>
+            <div class="flex justify-end">
+              <button type="button" onclick="closeDialog()" class="bg-gold text-obsidian font-bold text-xs uppercase px-5 py-2 hover:bg-amber transition-colors shadow">Understood</button>
+            </div>
+          </div>
+        </div>
+    </div>
   </main>
 
   <footer class="border-t border-gold/20 bg-obsidian px-5 py-12 lg:px-8">
