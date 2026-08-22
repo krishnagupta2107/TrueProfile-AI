@@ -15,7 +15,12 @@ client = TestClient(app)
 def test_read_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to TrueProfile AI backend"}
+    assert response.json() == {
+        "service": "TrueProfile AI",
+        "status": "healthy",
+        "version": "1.0.0",
+        "docs": "/docs",
+    }
 
 
 def test_analyze_profile_legitimate():

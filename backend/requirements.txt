@@ -13,3 +13,5 @@ scikit-learn
 networkx
 psycopg2-binary
 alembic
+slowapi
+sentry-sdk

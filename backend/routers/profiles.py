@@ -1,26 +1,39 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from backend.database import get_db
 from backend.models.profile import Profile
 from backend.schemas.profile import ProfileCreate, ProfileResponse, ProfileByUsername
 from backend.services.profile_analyzer import ProfileAnalyzerService
 from backend.services.ingestion import ingest_profile_by_username
+from backend.auth import require_api_key
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 analyzer_service = ProfileAnalyzerService()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("/", response_model=List[ProfileResponse])
-def get_profiles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_profiles(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(require_api_key),
+):
     """List all analyzed profiles stored in the database."""
     profiles = db.query(Profile).offset(skip).limit(limit).all()
     return profiles
 
 
 @router.get("/{profile_id}", response_model=ProfileResponse)
-def get_profile(profile_id: int, db: Session = Depends(get_db)):
+def get_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(require_api_key),
+):
     """Fetch a single analyzed profile by its database ID."""
     profile = db.query(Profile).filter(Profile.id == profile_id).first()
     if profile is None:
@@ -29,10 +42,17 @@ def get_profile(profile_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/analyze/username", response_model=ProfileResponse)
-def analyze_by_username(payload: ProfileByUsername, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def analyze_by_username(
+    request: Request,
+    payload: ProfileByUsername,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(require_api_key),
+):
     """
     Takes ONLY a username. Automatically ingests profile data (mock scraper)
     then runs it through the full ML pipeline.
+    Rate limited to 20 requests/minute per IP.
     """
     # 1. Ingest profile features from username
     profile_data = ingest_profile_by_username(payload.username)
@@ -75,10 +95,16 @@ def analyze_by_username(payload: ProfileByUsername, db: Session = Depends(get_db
 
 
 @router.post("/analyze", response_model=ProfileResponse)
-def analyze_full_profile(profile_data: ProfileCreate, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def analyze_full_profile(
+    request: Request,
+    profile_data: ProfileCreate,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(require_api_key),
+):
     """
     Takes full profile feature data and runs through the ML pipeline.
-    Useful for testing and the mock data generator.
+    Rate limited to 20 requests/minute per IP.
     """
     analysis_result = analyzer_service.analyze_profile(profile_data.model_dump())
 
