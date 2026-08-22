@@ -21,25 +21,25 @@ def generate_synthetic_data(num_samples: int) -> pd.DataFrame:
         is_bot = random.random() < 0.3  # 30% fake accounts
         
         if is_bot:
-            # Bot characteristics
-            account_age_days = random.randint(0, 30)
-            followers = random.randint(0, 50)
-            following = random.randint(1000, 5000)
-            posts_per_day = random.uniform(10.0, 50.0)
-            profile_completeness = random.uniform(0.1, 0.5)
-            follow_burst_rate = random.uniform(0.7, 1.0)
-            posting_variance = random.uniform(0.6, 1.0) # Highly variance or highly uniform (we just use high variance)
-            engagement_rate = random.uniform(0.0, 0.02)
+            # Bot characteristics (high noise)
+            account_age_days = max(0, int(np.random.normal(100, 150))) 
+            followers = max(0, int(np.random.normal(200, 400)))
+            following = max(0, int(np.random.normal(1500, 2000)))
+            posts_per_day = max(0.0, np.random.normal(8.0, 10.0))
+            profile_completeness = np.clip(np.random.normal(0.4, 0.4), 0.0, 1.0)
+            follow_burst_rate = np.clip(np.random.normal(0.6, 0.4), 0.0, 1.0)
+            posting_variance = np.clip(np.random.normal(0.6, 0.4), 0.0, 1.0)
+            engagement_rate = np.clip(np.random.normal(0.03, 0.1), 0.0, 1.0)
         else:
-            # Legitimate user characteristics
-            account_age_days = random.randint(30, 3000)
-            followers = random.randint(50, 5000)
-            following = random.randint(50, 1000)
-            posts_per_day = random.uniform(0.1, 3.0)
-            profile_completeness = random.uniform(0.7, 1.0)
-            follow_burst_rate = random.uniform(0.0, 0.2)
-            posting_variance = random.uniform(0.1, 0.4)
-            engagement_rate = random.uniform(0.05, 0.2)
+            # Legitimate user characteristics (high noise)
+            account_age_days = max(0, int(np.random.normal(500, 400)))
+            followers = max(0, int(np.random.normal(400, 800)))
+            following = max(0, int(np.random.normal(600, 800)))
+            posts_per_day = max(0.0, np.random.normal(2.0, 5.0))
+            profile_completeness = np.clip(np.random.normal(0.7, 0.4), 0.0, 1.0)
+            follow_burst_rate = np.clip(np.random.normal(0.2, 0.3), 0.0, 1.0)
+            posting_variance = np.clip(np.random.normal(0.4, 0.3), 0.0, 1.0)
+            engagement_rate = np.clip(np.random.normal(0.1, 0.15), 0.0, 1.0)
             
         data.append({
             "account_age_days": account_age_days,
