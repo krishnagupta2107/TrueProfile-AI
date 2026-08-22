@@ -3,5 +3,8 @@ uvicorn
 sqlalchemy
 pydantic
 python-dotenv
-pytest
-httpx2
+pytest==8.0.0
+httpx==0.27.0
+deepface
+tf-keras
+opencv-python-headless
