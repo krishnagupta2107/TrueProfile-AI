@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routers import profiles
+from backend.database import engine, Base
+import backend.models.profile  # noqa: F401 - ensures model is registered with Base
 
 app = FastAPI(title="TrueProfile AI", version="1.0.0")
 
@@ -12,6 +14,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create tables on startup
+Base.metadata.create_all(bind=engine)
 
 app.include_router(profiles.router)
 

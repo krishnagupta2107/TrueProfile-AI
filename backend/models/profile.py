@@ -1,18 +1,23 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, JSON
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.database import Base
+
 
 class Profile(Base):
     __tablename__ = "profiles"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, index=True, nullable=True)
-    
-    # Raw features (example fields for the data generator)
+
+    # Raw features
     account_age_days = Column(Integer, default=0)
     followers = Column(Integer, default=0)
     following = Column(Integer, default=0)
     posts_per_day = Column(Float, default=0.0)
+    profile_completeness = Column(Float, default=0.5)
+    follow_burst_rate = Column(Float, default=0.0)
+    posting_variance = Column(Float, default=0.0)
+    engagement_rate = Column(Float, default=0.0)
     profile_image_url = Column(String, nullable=True)
 
     # Component Scores (0.0 to 1.0)
@@ -24,12 +29,13 @@ class Profile(Base):
 
     # Final Risk Assessment
     risk_score = Column(Float, nullable=True)
-    risk_level = Column(String, nullable=True) # HIGH, BORDERLINE, LOW
-    
+    risk_level = Column(String, nullable=True)          # HIGH, BORDERLINE, LOW
+    recommended_action = Column(String, nullable=True)  # FLAG, HUMAN_REVIEW, NO_ACTION
+
     # Evidence array stored as JSON
     evidence = Column(JSON, default=list)
 
     # Audit fields
     model_version = Column(String, default="v0.1-weighted")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     analyzed_at = Column(DateTime, nullable=True)
