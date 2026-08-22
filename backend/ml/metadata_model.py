@@ -1,3 +1,5 @@
+import os
+import joblib
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from backend.ml.base import BaseModelInterface
@@ -10,22 +12,24 @@ class RealMetadataModel(BaseModelInterface):
     """
     def __init__(self):
         self.model_name = "ScikitLearn-MetadataClassifier"
-        # Calibrated weights for metadata risk dimensions
-        # Features: [log(age + 1), completeness, engagement_rate, posts_per_day]
-        self._clf = LogisticRegression()
-        # Fit on reference synthetic baseline vectors to establish standard decision boundary
-        X_ref = np.array([
-            # [log(age+1), completeness, engagement, posts_per_day]
-            [6.8, 0.95, 0.08, 1.2],  # Safe human (900d, complete, active) -> 0
-            [5.8, 0.85, 0.05, 2.0],  # Safe human (330d) -> 0
-            [1.6, 0.20, 0.00, 25.0], # Bot (5d, incomplete, spam) -> 1
-            [2.5, 0.30, 0.002, 18.0],# Bot (12d, incomplete) -> 1
-            [4.0, 0.60, 0.02, 6.0],  # Borderline -> 0
-            [2.0, 0.40, 0.001, 12.0],# Bot -> 1
-            [7.2, 0.90, 0.06, 0.8],  # Safe human -> 0
-        ])
-        y_ref = np.array([0, 0, 1, 1, 0, 1, 0])
-        self._clf.fit(X_ref, y_ref)
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        self.model_path = os.path.join(base_dir, "models", "metadata_classifier.joblib")
+        
+        if os.path.exists(self.model_path):
+            self._clf = joblib.load(self.model_path)
+        else:
+            self._clf = LogisticRegression()
+            X_ref = np.array([
+                [6.8, 0.95, 0.08, 1.2],
+                [5.8, 0.85, 0.05, 2.0],
+                [1.6, 0.20, 0.00, 25.0],
+                [2.5, 0.30, 0.002, 18.0],
+                [4.0, 0.60, 0.02, 6.0],
+                [2.0, 0.40, 0.001, 12.0],
+                [7.2, 0.90, 0.06, 0.8],
+            ])
+            y_ref = np.array([0, 0, 1, 1, 0, 1, 0])
+            self._clf.fit(X_ref, y_ref)
 
     def predict(self, features: dict) -> float:
         """
