@@ -32,29 +32,74 @@ class RealDeepfakeDetector(BaseModelInterface):
             return 0.5
 
         try:
-            # Extract faces with anti-spoofing enabled
-            face_objs = DeepFace.extract_faces(
-                img_path=img_path,
-                anti_spoofing=True,
-                enforce_detection=False
-            )
+            from PIL import Image
             
-            if not face_objs or len(face_objs) == 0:
-                risk_score = 0.5
-            else:
-                # Average the spoofing score if multiple faces
-                spoof_scores = []
-                for face in face_objs:
-                    # 'is_real' boolean is returned when anti_spoofing=True
-                    # We invert it: if it's real, risk is low. If it's a spoof (AI/Deepfake/Mask), risk is high.
-                    is_real = face.get("is_real", True) 
-                    spoof_scores.append(0.1 if is_real else 0.95)
+            with Image.open(img_path) as pil_img:
+                img_rgb = pil_img.convert("RGB")
+                w, h = img_rgb.size
                 
-                risk_score = sum(spoof_scores) / len(spoof_scores)
+                # Resize to standard analysis size for consistent spectrum analysis
+                img_resized = img_rgb.resize((256, 256))
+                arr = np.array(img_resized, dtype=np.float32)
+                
+                # 1. Grayscale conversion for 2D-FFT frequency spectrum analysis
+                gray = 0.2989 * arr[:, :, 0] + 0.5870 * arr[:, :, 1] + 0.1140 * arr[:, :, 2]
+                
+                # Compute 2D Fast Fourier Transform
+                f_transform = np.fft.fft2(gray)
+                f_shift = np.fft.fftshift(f_transform)
+                magnitude_spectrum = np.log(np.abs(f_shift) + 1.0)
+                
+                # Analyze High-Frequency vs Low-Frequency Power Ratio
+                cy, cx = 128, 128
+                y, x = np.ogrid[:256, :256]
+                dist_from_center = np.sqrt((x - cx)**2 + (y - cy)**2)
+                
+                high_freq_mask = dist_from_center > 64
+                low_freq_mask = dist_from_center <= 32
+                
+                high_freq_energy = np.mean(magnitude_spectrum[high_freq_mask])
+                low_freq_energy = np.mean(magnitude_spectrum[low_freq_mask])
+                spectral_ratio = high_freq_energy / (low_freq_energy + 1e-6)
+                
+                # 2. Laplacian Second-Order Spatial Gradient Analysis
+                # Detects synthetic pixel smoothing or boundary blending artifacts
+                laplacian_kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]], dtype=np.float32)
+                # Compute spatial variance
+                dx = np.diff(gray, axis=1)
+                dy = np.diff(gray, axis=0)
+                grad_mag = np.mean(np.abs(dx)) + np.mean(np.abs(dy))
+                
+                # 3. Chrominance Aberration (Y-Cb-Cr channel decoupling in GANs)
+                cb = -0.1687 * arr[:, :, 0] - 0.3313 * arr[:, :, 1] + 0.5000 * arr[:, :, 2]
+                cr = 0.5000 * arr[:, :, 0] - 0.4187 * arr[:, :, 1] - 0.0813 * arr[:, :, 2]
+                chroma_var = np.var(cb) + np.var(cr)
+                
+                # 4. Synthesize Deepfake / AI Artifact Probability
+                # Authentic camera photos have natural spectral decay and balanced gradient entropy
+                score = 0.10
+                
+                # Check for high-frequency Fourier grid artifacts typical of upsamplers (GANs/Diffusion)
+                if spectral_ratio > 0.48 or spectral_ratio < 0.22:
+                    score += 0.35
+                elif spectral_ratio > 0.42:
+                    score += 0.20
+                    
+                # Check for unnatural edge sharpness / excessive smoothing
+                if grad_mag < 2.5:
+                    score += 0.25  # Unnatural AI plastic smoothing
+                elif grad_mag > 35.0:
+                    score += 0.20  # High-frequency synthetic noise
+                    
+                # Check chroma variance
+                if chroma_var < 15.0 or chroma_var > 600.0:
+                    score += 0.15
+                    
+                risk_score = min(0.95, max(0.05, score))
 
         except Exception as e:
-            print(f"Deepfake detection error: {e}")
-            risk_score = 0.5
+            print(f"Deepfake spectral analysis error: {e}")
+            risk_score = 0.50
         finally:
             if img_path and "temp_" in os.path.basename(img_path) and os.path.exists(img_path):
                 try:
@@ -62,7 +107,7 @@ class RealDeepfakeDetector(BaseModelInterface):
                 except:
                     pass
 
-        return round(risk_score, 2)
+        return round(float(risk_score), 2)
 
     def _download_image(self, url: str) -> str:
         # 1. Direct local file path

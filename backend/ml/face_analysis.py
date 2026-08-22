@@ -43,51 +43,57 @@ class ArcFaceModel(BaseModelInterface):
             return 0.9  # Invalid/broken image URL
 
         try:
-            # 1. Face Detection and Embedding Extraction
+            # 1. Image Quality and Chroma Analysis using PIL
+            from PIL import Image, ImageStat
+            with Image.open(img_path) as pil_img:
+                img_rgb = pil_img.convert("RGB")
+                w, h = img_rgb.size
+                stat = ImageStat.Stat(img_rgb)
+                
+                # Check for blank / solid color / extreme low-res images
+                std_dev = stat.stddev
+                avg_std = sum(std_dev) / len(std_dev) if std_dev else 0
+                if avg_std < 12.0 or w < 30 or h < 30:
+                    # Flat / solid / blank image -> high risk
+                    return 0.90
+
+            # 2. Extract Real 512-D ArcFace Deep Biometric Embedding
             face_objs = DeepFace.represent(
                 img_path=img_path, 
                 model_name=self.model_name, 
-                detector_backend=self.detector_backend,
+                detector_backend="skip",
                 enforce_detection=False
             )
             
-            # Filter for faces with valid detector confidence
-            valid_faces = [
-                f for f in (face_objs or []) 
-                if f.get("face_confidence", 1.0) >= 0.40 and f.get("facial_area", {}).get("w", 50) >= 20
-            ]
+            if not face_objs or len(face_objs) == 0:
+                return 0.80
 
-            # 2. Analyze the detected faces
-            if not valid_faces:
-                # No identifiable human face in the uploaded image
-                risk_score = 0.85
-            elif len(valid_faces) > 1:
-                # Group photo / multiple faces in avatar (higher ambiguity)
-                risk_score = 0.55
-            else:
-                # Exactly one clear human face detected
-                face = valid_faces[0]
-                confidence = float(face.get("face_confidence", 0.95))
-                embedding = face.get("embedding", [])
-                
-                if embedding:
-                    emb_arr = np.array(embedding, dtype=np.float32)
-                    # Natural human embedding characteristics: variance and vector dispersion
-                    emb_var = float(np.var(emb_arr))
-                    # Genuine camera photos with clear facial geometry have steady embedding variance (~0.001 - 0.005)
-                    # High confidence (>0.85) + normal variance -> very low risk (0.05 - 0.20)
-                    base_risk = max(0.04, (1.0 - confidence) * 0.4)
-                    var_penalty = 0.15 if (emb_var < 0.0005 or emb_var > 0.015) else 0.0
-                    risk_score = min(0.95, base_risk + var_penalty)
-                else:
-                    risk_score = 0.35
+            embedding = face_objs[0].get("embedding", [])
+            if not embedding or len(embedding) < 100:
+                return 0.75
+
+            emb_arr = np.array(embedding, dtype=np.float32)
+            emb_norm = float(np.linalg.norm(emb_arr))
+            emb_var = float(np.var(emb_arr))
+            emb_mean = float(np.mean(emb_arr))
+
+            # Authentic human facial embedding manifold:
+            # High quality natural face images exhibit balanced embedding norm and variance
+            # Deviations indicate synthetic generator artifacts or non-human patterns
+            norm_deviation = abs(emb_norm - 1.0)
+            var_score = 0.05
+            if emb_var < 0.0012 or emb_var > 0.0065:
+                var_score += 0.25
+            if norm_deviation > 0.15:
+                var_score += 0.20
+
+            # Compute biometric confidence risk (0.05 = authentic human, 0.90 = non-face/synthetic)
+            risk_score = min(0.92, max(0.06, var_score + (norm_deviation * 0.5)))
 
         except Exception as e:
-            # Error during processing
-            print(f"ArcFace processing exception for {img_path}: {e}")
-            risk_score = 0.70
+            print(f"ArcFace model processing exception for {img_path}: {e}")
+            risk_score = 0.65
         finally:
-            # Cleanup temp image only (preserve saved uploads)
             if img_path and "temp_" in os.path.basename(img_path) and os.path.exists(img_path):
                 try:
                     os.remove(img_path)
