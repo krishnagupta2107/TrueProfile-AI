@@ -328,67 +328,128 @@
       <div class="mx-auto max-w-7xl overflow-hidden border-2 border-gold bg-obsidian shadow-[0_0_36px_rgba(106,13,173,0.5)]">
         <div class="kente-band p-8 md:p-12 lg:p-16">
           <div class="max-w-3xl mb-8">
-            <p class="font-mono text-sm uppercase tracking-[0.24em] text-sand">Live AI Scanner</p>
-            <h2 class="mt-4 text-4xl font-bold leading-tight text-gold md:text-6xl">Automated Profile Intelligence.</h2>
-            <p class="mt-6 text-lg leading-8 text-sand">Simply select the platform and enter any handle. TrueProfile AI automatically extracts account metadata, engagement signals, graph topology, and visual biometrics to calculate a transparent risk score.</p>
+            <p class="font-mono text-sm uppercase tracking-[0.24em] text-sand">Live AI Audit</p>
+            <h2 class="mt-4 text-4xl font-bold leading-tight text-gold md:text-6xl">Multi-Signal Profile Audit.</h2>
+            <p class="mt-6 text-lg leading-8 text-sand">Enter real profile details below — TrueProfile AI does not scrape platforms automatically due to their data policies. Upload an authentic profile image or supply a verified image URL to evaluate biometric and behavioral risk.</p>
           </div>
           
           <div class="grid gap-8 lg:grid-cols-12">
             <!-- Form -->
-            <div class="bg-royal/10 p-6 lg:p-8 border border-gold/30 lg:col-span-5 flex flex-col justify-between">
+            <div class="bg-royal/10 p-6 lg:p-8 border border-gold/30 lg:col-span-6 flex flex-col justify-between">
               <div>
-                <h3 class="text-xl font-bold text-gold mb-2">Scan Account</h3>
-                <p class="text-xs text-sand/80 mb-6">Our automated crawler ingests all telemetry in real-time.</p>
-                
-                <div class="space-y-5">
-                  <div>
-                    <label class="block text-xs uppercase tracking-wider text-sand mb-2">Select Platform</label>
-                    <select id="demo-platform" class="w-full bg-obsidian border border-gold/50 text-sand p-3 font-mono focus:border-gold focus:outline-none cursor-pointer">
-                      <option value="instagram">📸 Instagram</option>
-                      <option value="twitter">🐦 Twitter / X</option>
-                      <option value="linkedin">💼 LinkedIn</option>
-                      <option value="tiktok">🎵 TikTok</option>
-                      <option value="facebook">👥 Facebook</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="block text-xs uppercase tracking-wider text-sand mb-2">Account Username / Handle</label>
-                    <div class="relative">
-                      <input type="text" id="demo-username" value="crypto_bot_promo" placeholder="e.g. elonmusk, bot_99" class="w-full bg-obsidian border border-gold/50 text-sand p-3 pl-4 font-mono text-base focus:border-gold focus:outline-none">
-                    </div>
-                  </div>
-
-                  <!-- Quick Sample Chips -->
-                  <div>
-                    <span class="block text-[10px] uppercase tracking-widest text-sand/60 mb-2">Quick Test Profiles:</span>
-                    <div class="flex flex-wrap gap-2">
-                      <button type="button" onclick="setQuickTest('elonmusk', 'twitter')" class="text-xs px-2.5 py-1 bg-obsidian border border-green-500/40 text-green-400 hover:bg-green-500/10 transition-colors">👤 @elonmusk (Real)</button>
-                      <button type="button" onclick="setQuickTest('crypto_bot_promo', 'instagram')" class="text-xs px-2.5 py-1 bg-obsidian border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors">🤖 @crypto_bot (Spam)</button>
-                      <button type="button" onclick="setQuickTest('sarah_affiliate_deals', 'instagram')" class="text-xs px-2.5 py-1 bg-obsidian border border-amber/40 text-amber hover:bg-amber/10 transition-colors">⚠️ @sarah_deals (Review)</button>
-                    </div>
-                  </div>
-
-                  <button id="scan-btn" onclick="runAnalysis()" class="mt-4 w-full bg-gold text-obsidian font-bold py-3.5 px-6 uppercase tracking-wider text-sm hover:bg-amber transition-all shadow-lg flex items-center justify-center gap-2">
-                    <span id="btn-text">Run Automated Audit</span>
-                  </button>
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-xl font-bold text-gold">Profile Telemetry & Media</h3>
+                  <span class="text-[10px] font-mono uppercase bg-gold/20 text-gold px-2 py-0.5 border border-gold/40">Manual Input Flow</span>
                 </div>
+                <p class="text-xs text-sand/80 mb-5">Provide authentic account attributes to execute the full 5-model ML fusion pipeline.</p>
+                
+                <!-- Quick-Fill Presets -->
+                <div class="mb-5 pb-4 border-b border-gold/20">
+                  <span class="block text-[10px] uppercase tracking-widest text-sand/60 mb-2">Preset Test Samples:</span>
+                  <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="fillPreset('human')" class="text-xs px-2.5 py-1 bg-obsidian border border-green-500/40 text-green-400 hover:bg-green-500/10 transition-colors">👤 Human Sample</button>
+                    <button type="button" onclick="fillPreset('bot')" class="text-xs px-2.5 py-1 bg-obsidian border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors">🤖 Spammer Bot Sample</button>
+                    <button type="button" onclick="fillPreset('borderline')" class="text-xs px-2.5 py-1 bg-obsidian border border-amber/40 text-amber hover:bg-amber/10 transition-colors">⚠️ Borderline Sample</button>
+                  </div>
+                </div>
+
+                <form id="audit-form" onsubmit="event.preventDefault(); runManualAnalysis();" class="space-y-4">
+                  <!-- Username label -->
+                  <div>
+                    <label class="block text-xs uppercase tracking-wider text-sand mb-1">Account Handle / Identifier <span class="text-sand/50 lowercase">(optional label)</span></label>
+                    <input type="text" id="in-username" value="@alex.rivers" placeholder="e.g. @alex.rivers" class="w-full bg-obsidian border border-gold/50 text-sand p-2.5 font-mono text-sm focus:border-gold focus:outline-none">
+                  </div>
+
+                  <!-- Count Metrics -->
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs uppercase tracking-wider text-sand mb-1">Account Age (Days)</label>
+                      <input type="number" id="in-age" value="850" min="0" required class="w-full bg-obsidian border border-gold/50 text-sand p-2 font-mono text-sm focus:border-gold focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs uppercase tracking-wider text-sand mb-1">Posts per Day</label>
+                      <input type="number" id="in-posts" value="1.2" step="0.1" min="0" required class="w-full bg-obsidian border border-gold/50 text-sand p-2 font-mono text-sm focus:border-gold focus:outline-none">
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs uppercase tracking-wider text-sand mb-1">Followers Count</label>
+                      <input type="number" id="in-followers" value="620" min="0" required class="w-full bg-obsidian border border-gold/50 text-sand p-2 font-mono text-sm focus:border-gold focus:outline-none">
+                    </div>
+                    <div>
+                      <label class="block text-xs uppercase tracking-wider text-sand mb-1">Following Count</label>
+                      <input type="number" id="in-following" value="450" min="0" required class="w-full bg-obsidian border border-gold/50 text-sand p-2 font-mono text-sm focus:border-gold focus:outline-none">
+                    </div>
+                  </div>
+
+                  <!-- Range / Telemetry Metrics -->
+                  <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <div class="flex justify-between text-xs text-sand mb-1">
+                        <span class="uppercase">Completeness</span>
+                        <span id="val-completeness" class="font-mono text-gold">0.90</span>
+                      </div>
+                      <input type="range" id="in-completeness" min="0" max="1" step="0.05" value="0.90" oninput="document.getElementById('val-completeness').innerText = parseFloat(this.value).toFixed(2)" class="w-full accent-gold bg-obsidian cursor-pointer">
+                    </div>
+                    <div>
+                      <div class="flex justify-between text-xs text-sand mb-1">
+                        <span class="uppercase">Follow Burst Rate</span>
+                        <span id="val-burst" class="font-mono text-gold">0.08</span>
+                      </div>
+                      <input type="range" id="in-burst" min="0" max="1" step="0.05" value="0.08" oninput="document.getElementById('val-burst').innerText = parseFloat(this.value).toFixed(2)" class="w-full accent-gold bg-obsidian cursor-pointer">
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <div class="flex justify-between text-xs text-sand mb-1">
+                        <span class="uppercase">Posting Variance</span>
+                        <span id="val-variance" class="font-mono text-gold">0.20</span>
+                      </div>
+                      <input type="range" id="in-variance" min="0" max="1" step="0.05" value="0.20" oninput="document.getElementById('val-variance').innerText = parseFloat(this.value).toFixed(2)" class="w-full accent-gold bg-obsidian cursor-pointer">
+                    </div>
+                    <div>
+                      <div class="flex justify-between text-xs text-sand mb-1">
+                        <span class="uppercase">Engagement Rate</span>
+                        <span id="val-engagement" class="font-mono text-gold">0.08</span>
+                      </div>
+                      <input type="range" id="in-engagement" min="0" max="1" step="0.01" value="0.08" oninput="document.getElementById('val-engagement').innerText = parseFloat(this.value).toFixed(2)" class="w-full accent-gold bg-obsidian cursor-pointer">
+                    </div>
+                  </div>
+
+                  <!-- Media Upload & URL -->
+                  <div class="pt-2 border-t border-gold/20 space-y-3">
+                    <div>
+                      <label class="block text-xs uppercase tracking-wider text-sand mb-1">Profile Photo Upload <span class="text-sand/50 lowercase">(JPG, PNG, WebP)</span></label>
+                      <input type="file" id="in-file" accept="image/*" class="w-full text-xs text-sand file:mr-3 file:py-1.5 file:px-3 file:border file:border-gold/50 file:bg-obsidian file:text-gold file:font-mono file:cursor-pointer hover:file:bg-gold/10">
+                    </div>
+                    <div>
+                      <label class="block text-xs uppercase tracking-wider text-sand mb-1">Or Hosted Image URL <span class="text-sand/50 lowercase">(optional alternative)</span></label>
+                      <input type="url" id="in-image-url" value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" placeholder="https://..." class="w-full bg-obsidian border border-gold/50 text-sand p-2 font-mono text-xs focus:border-gold focus:outline-none">
+                    </div>
+                  </div>
+
+                  <button type="submit" id="scan-btn" class="mt-4 w-full bg-gold text-obsidian font-bold py-3.5 px-6 uppercase tracking-wider text-sm hover:bg-amber transition-all shadow-lg flex items-center justify-center gap-2">
+                    <span id="btn-text">Audit Real Profile Data</span>
+                  </button>
+                </form>
               </div>
 
-              <div class="mt-8 pt-4 border-t border-gold/10 text-xs text-sand/60">
-                <span>🛡️ Analyzed through: ArcFace Biometrics • Deepfake CNN • XGBoost Telemetry • NetworkX Ego-Graph • Logistic Fusion</span>
+              <div class="mt-6 pt-3 border-t border-gold/10 text-[11px] text-sand/60">
+                <span>🛡️ Audited with ArcFace Biometrics, Deepfake CNN, XGBoost Telemetry, Network Centrality, and Logistic Fusion.</span>
               </div>
             </div>
 
             <!-- Results -->
-            <div id="demo-result" class="bg-obsidian border border-gold/30 p-6 lg:p-8 lg:col-span-7 opacity-50 pointer-events-none transition-all flex flex-col justify-between">
+            <div id="demo-result" class="bg-obsidian border border-gold/30 p-6 lg:p-8 lg:col-span-6 opacity-50 pointer-events-none transition-all flex flex-col justify-between">
               <div>
-                <div class="flex items-center justify-between border-b border-gold/20 pb-4 mb-6">
+                <div class="flex items-center justify-between border-b border-gold/20 pb-4 mb-5">
                   <div class="flex items-center gap-3">
-                    <img id="res-avatar" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="Avatar" class="w-12 h-12 rounded-full border border-gold/40">
+                    <img id="res-avatar" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="Avatar" class="w-12 h-12 rounded-full border border-gold/40 object-cover">
                     <div>
-                      <h4 id="res-handle" class="text-lg font-bold text-gold">@username</h4>
-                      <p id="res-platform-tag" class="text-xs font-mono text-sand/80 uppercase">Instagram</p>
+                      <h4 id="res-handle" class="text-lg font-bold text-gold">@alex.rivers</h4>
+                      <p class="text-xs font-mono text-sand/80 uppercase">Verified Manual Payload</p>
                     </div>
                   </div>
                   <div class="text-right">
@@ -398,7 +459,7 @@
                 </div>
 
                 <!-- Risk Score & Level -->
-                <div class="grid grid-cols-2 gap-4 bg-royal/10 border border-gold/20 p-4 mb-6">
+                <div class="grid grid-cols-2 gap-4 bg-royal/10 border border-gold/20 p-4 mb-5">
                   <div>
                     <span class="text-sand uppercase tracking-wider text-xs block mb-1">Composite Risk Score</span>
                     <span id="res-score" class="text-3xl lg:text-4xl font-bold font-mono text-white">--</span>
@@ -409,10 +470,10 @@
                   </div>
                 </div>
 
-                <!-- Extracted Raw Telemetry -->
-                <div class="mb-6">
-                  <span class="text-xs uppercase tracking-wider text-gold font-bold block mb-2">Auto-Extracted Account Telemetry</span>
-                  <div class="grid grid-cols-4 gap-2 text-center bg-obsidian border border-gold/10 p-3 text-xs font-mono">
+                <!-- Submitted Telemetry Verification -->
+                <div class="mb-5">
+                  <span class="text-xs uppercase tracking-wider text-gold font-bold block mb-2">Evaluated Profile Telemetry</span>
+                  <div class="grid grid-cols-4 gap-2 text-center bg-obsidian border border-gold/10 p-2.5 text-xs font-mono">
                     <div>
                       <span class="text-sand/60 block text-[10px]">AGE</span>
                       <span id="tel-age" class="text-gold font-bold">--</span>
@@ -433,8 +494,8 @@
                 </div>
 
                 <!-- 5-Signal Breakdown -->
-                <div class="mb-6">
-                  <span class="text-xs uppercase tracking-wider text-gold font-bold block mb-2">5-Signal Intelligence Breakdown</span>
+                <div class="mb-5">
+                  <span class="text-xs uppercase tracking-wider text-gold font-bold block mb-2">5-Signal Model Breakdown</span>
                   <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-mono">
                     <div class="bg-royal/20 border border-gold/20 p-2">
                       <span class="text-sand/70 block">FACE</span>
@@ -462,8 +523,8 @@
                 <!-- Evidence Trail -->
                 <div>
                   <span class="text-xs uppercase tracking-wider text-gold font-bold block mb-2">Auditable Evidence Trail</span>
-                  <ul id="res-evidence" class="space-y-1.5 text-xs text-sand font-mono bg-royal/5 border border-gold/10 p-3 rounded">
-                    <li>Waiting for profile analysis...</li>
+                  <ul id="res-evidence" class="space-y-1.5 text-xs text-sand font-mono bg-royal/5 border border-gold/10 p-3 rounded max-h-48 overflow-y-auto">
+                    <li>Submit profile telemetry to generate risk evidence...</li>
                   </ul>
                 </div>
               </div>
@@ -474,39 +535,86 @@
     </section>
 
     <script>
-      function setQuickTest(username, platform) {
-        document.getElementById('demo-username').value = username;
-        document.getElementById('demo-platform').value = platform;
-        runAnalysis();
+      function fillPreset(type) {
+        if (type === 'human') {
+          document.getElementById('in-username').value = '@alex.rivers';
+          document.getElementById('in-age').value = '850';
+          document.getElementById('in-posts').value = '1.2';
+          document.getElementById('in-followers').value = '620';
+          document.getElementById('in-following').value = '450';
+          setSlider('in-completeness', 'val-completeness', 0.90);
+          setSlider('in-burst', 'val-burst', 0.08);
+          setSlider('in-variance', 'val-variance', 0.20);
+          setSlider('in-engagement', 'val-engagement', 0.08);
+          document.getElementById('in-image-url').value = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+          document.getElementById('in-file').value = '';
+        } else if (type === 'bot') {
+          document.getElementById('in-username').value = '@crypto_giveaway_bot99';
+          document.getElementById('in-age').value = '4';
+          document.getElementById('in-posts').value = '28.5';
+          document.getElementById('in-followers').value = '12';
+          document.getElementById('in-following').value = '4500';
+          setSlider('in-completeness', 'val-completeness', 0.20);
+          setSlider('in-burst', 'val-burst', 0.95);
+          setSlider('in-variance', 'val-variance', 0.90);
+          setSlider('in-engagement', 'val-engagement', 0.00);
+          document.getElementById('in-image-url').value = 'http://example.com/bot.jpg';
+          document.getElementById('in-file').value = '';
+        } else if (type === 'borderline') {
+          document.getElementById('in-username').value = '@deal_finder_vip';
+          document.getElementById('in-age').value = '60';
+          document.getElementById('in-posts').value = '6.5';
+          document.getElementById('in-followers').value = '1200';
+          document.getElementById('in-following').value = '1800';
+          setSlider('in-completeness', 'val-completeness', 0.55);
+          setSlider('in-burst', 'val-burst', 0.45);
+          setSlider('in-variance', 'val-variance', 0.50);
+          setSlider('in-engagement', 'val-engagement', 0.015);
+          document.getElementById('in-image-url').value = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
+          document.getElementById('in-file').value = '';
+        }
       }
 
-      async function runAnalysis() {
+      function setSlider(id, valId, val) {
+        const el = document.getElementById(id);
+        el.value = val;
+        document.getElementById(valId).innerText = parseFloat(val).toFixed(2);
+      }
+
+      async function runManualAnalysis() {
         const btn = document.getElementById('scan-btn');
         const btnText = document.getElementById('btn-text');
-        const username = document.getElementById('demo-username').value.trim();
-        const platform = document.getElementById('demo-platform').value;
 
-        if (!username) {
-          alert("Please enter a username to analyze.");
-          return;
-        }
-
-        btnText.innerText = "Extracting & Analyzing...";
+        btnText.innerText = "Executing 5-Model Fusion Pipeline...";
         btn.classList.add('opacity-75', 'pointer-events-none');
         
-        const payload = {
-          username: username,
-          platform: platform
-        };
+        const username = document.getElementById('in-username').value.trim() || 'unnamed_account';
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('account_age_days', parseInt(document.getElementById('in-age').value) || 0);
+        formData.append('followers', parseInt(document.getElementById('in-followers').value) || 0);
+        formData.append('following', parseInt(document.getElementById('in-following').value) || 0);
+        formData.append('posts_per_day', parseFloat(document.getElementById('in-posts').value) || 0.0);
+        formData.append('profile_completeness', parseFloat(document.getElementById('in-completeness').value) || 0.5);
+        formData.append('follow_burst_rate', parseFloat(document.getElementById('in-burst').value) || 0.0);
+        formData.append('posting_variance', parseFloat(document.getElementById('in-variance').value) || 0.0);
+        formData.append('engagement_rate', parseFloat(document.getElementById('in-engagement').value) || 0.0);
+
+        const fileInput = document.getElementById('in-file');
+        if (fileInput.files && fileInput.files[0]) {
+          formData.append('image', fileInput.files[0]);
+        }
+
+        const imageUrl = document.getElementById('in-image-url').value.trim();
+        if (imageUrl) {
+          formData.append('profile_image_url', imageUrl);
+        }
 
         try {
           const apiBase = window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : 'http://localhost:8000';
-          const res = await fetch(`${apiBase}/profiles/analyze/username`, {
+          const res = await fetch(`${apiBase}/profiles/analyze/manual`, {
             method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            body: formData
           });
           
           if (!res.ok) {
@@ -521,10 +629,13 @@
           resPanel.classList.remove('opacity-50', 'pointer-events-none');
           
           // Header & Telemetry
-          document.getElementById('res-handle').innerText = data.username || ('@' + username);
-          document.getElementById('res-platform-tag').innerText = platform.toUpperCase();
+          document.getElementById('res-handle').innerText = data.username || username;
           if (data.profile_image_url) {
             document.getElementById('res-avatar').src = data.profile_image_url;
+          } else if (fileInput.files && fileInput.files[0]) {
+            document.getElementById('res-avatar').src = URL.createObjectURL(fileInput.files[0]);
+          } else {
+            document.getElementById('res-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=6366f1&color=fff`;
           }
           
           document.getElementById('tel-age').innerText = `${data.account_age_days || 0}d`;
@@ -554,11 +665,11 @@
           actionEl.innerText = data.recommended_action || 'NO_ACTION';
 
           // Signals Breakdown
-          document.getElementById('sig-face').innerText = `${((data.face_score || 0) * 100).toFixed(0)}%`;
-          document.getElementById('sig-deepfake').innerText = `${((data.deepfake_score || 0) * 100).toFixed(0)}%`;
-          document.getElementById('sig-behavior').innerText = `${((data.behavior_score || 0) * 100).toFixed(0)}%`;
-          document.getElementById('sig-meta').innerText = `${((data.metadata_score || 0) * 100).toFixed(0)}%`;
-          document.getElementById('sig-network').innerText = `${((data.network_score || 0) * 100).toFixed(0)}%`;
+          document.getElementById('sig-face').innerText = data.face_score !== null ? `${((data.face_score || 0) * 100).toFixed(0)}%` : '--';
+          document.getElementById('sig-deepfake').innerText = data.deepfake_score !== null ? `${((data.deepfake_score || 0) * 100).toFixed(0)}%` : '--';
+          document.getElementById('sig-behavior').innerText = data.behavior_score !== null ? `${((data.behavior_score || 0) * 100).toFixed(0)}%` : '--';
+          document.getElementById('sig-meta').innerText = data.metadata_score !== null ? `${((data.metadata_score || 0) * 100).toFixed(0)}%` : '--';
+          document.getElementById('sig-network').innerText = data.network_score !== null ? `${((data.network_score || 0) * 100).toFixed(0)}%` : '--';
 
           // Evidence List
           const evList = document.getElementById('res-evidence');
@@ -575,9 +686,9 @@
           }
           
         } catch (e) {
-          alert(`Error scanning account: ${e.message}. Ensure FastAPI is running on port 8000.`);
+          alert(`Error auditing profile: ${e.message}. Ensure FastAPI is running on port 8000.`);
         } finally {
-          btnText.innerText = "Run Automated Audit";
+          btnText.innerText = "Audit Real Profile Data";
           btn.classList.remove('opacity-75', 'pointer-events-none');
         }
       }

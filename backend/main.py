@@ -8,6 +8,7 @@ load_dotenv()
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -95,6 +96,10 @@ def run_migrations():
         logger.info("Database migrations applied successfully.")
     except Exception as e:
         logger.error(f"Migration failed: {e}")
+
+# Ensure uploads directory exists for multipart image uploads
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # ──────────────────────────────────────────────────────────────────
 # Routers

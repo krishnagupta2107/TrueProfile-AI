@@ -194,8 +194,9 @@ pytest backend/tests -v
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `GET` | `/` | Service health check and metadata | No |
-| `POST` | `/profiles/analyze/username` | Analyze a profile by username (auto-ingestion) | Yes (`X-API-Key` or bypass) |
-| `POST` | `/profiles/analyze` | Run full analysis on a structured feature payload | Yes (`X-API-Key` or bypass) |
+| `POST` | `/profiles/analyze/manual` | Analyze verified profile data via multipart form & image upload | Yes (`X-API-Key` or bypass) |
+| `POST` | `/profiles/analyze` | Run full analysis on a structured JSON feature payload | Yes (`X-API-Key` or bypass) |
+| `POST` | `/profiles/analyze/username` | *(Deprecated 501 Stub)* Directs consumers to `/analyze/manual` | No |
 | `GET` | `/profiles/` | List all historical profile analyses (paginated) | Yes (`X-API-Key` or bypass) |
 | `GET` | `/profiles/{id}` | Get specific analysis report by ID | Yes (`X-API-Key` or bypass) |
 | `GET` | `/review/queue` | List all pending borderline profiles awaiting review | Yes (`X-API-Key` or bypass) |

@@ -66,11 +66,59 @@ def test_analyze_profile_fake():
     assert data["recommended_action"] in ["FLAG", "HUMAN_REVIEW"]
 
 
-def test_analyze_by_username():
-    payload = {"username": "bot_clone_99"}
-    response = client.post("/profiles/analyze/username", json=payload)
+def test_analyze_manual_multipart():
+    form_data = {
+        "username": "manual_user_real",
+        "account_age_days": "500",
+        "followers": "800",
+        "following": "300",
+        "posts_per_day": "1.5",
+        "profile_completeness": "0.85",
+        "follow_burst_rate": "0.1",
+        "posting_variance": "0.2",
+        "engagement_rate": "0.06",
+        "profile_image_url": "http://example.com/manual.jpg"
+    }
+    response = client.post("/profiles/analyze/manual", data=form_data)
     assert response.status_code == 200
     data = response.json()
-    assert data["username"] == "bot_clone_99"
+    assert data["username"] == "manual_user_real"
+    assert data["followers"] == 800
     assert "risk_score" in data
-    assert data["risk_level"] in ["HIGH", "BORDERLINE", "LOW"]
+    assert data["risk_level"] in ["LOW", "BORDERLINE", "HIGH"]
+
+
+def test_analyze_manual_with_image_upload(tmp_path):
+    # Create a small valid test jpeg
+    import cv2
+    import numpy as np
+    
+    img = np.zeros((100, 100, 3), dtype=np.uint8)
+    img_path = str(tmp_path / "test_avatar.jpg")
+    cv2.imwrite(img_path, img)
+
+    with open(img_path, "rb") as f:
+        response = client.post(
+            "/profiles/analyze/manual",
+            data={
+                "username": "avatar_uploader",
+                "account_age_days": "120",
+                "followers": "250",
+                "following": "180",
+                "posts_per_day": "0.8",
+            },
+            files={"image": ("test_avatar.jpg", f, "image/jpeg")}
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["username"] == "avatar_uploader"
+    assert "uploads/" in data["profile_image_url"]
+    assert "risk_score" in data
+
+
+def test_analyze_by_username_deprecated_stub():
+    # Stub endpoint returns HTTP 501
+    payload = {"username": "old_scraper_call"}
+    response = client.post("/profiles/analyze/username", json=payload)
+    assert response.status_code == 501
+    assert "Automated ingestion not available" in response.json()["detail"]
