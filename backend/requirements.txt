@@ -10,3 +10,4 @@ tf-keras
 opencv-python-headless
 xgboost
 scikit-learn
+networkx
