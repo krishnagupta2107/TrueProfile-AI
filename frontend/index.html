@@ -404,13 +404,19 @@
         };
 
         try {
-          const res = await fetch('http://localhost:8000/profiles/analyze', {
+          const apiBase = window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : 'http://localhost:8000';
+          const res = await fetch(`${apiBase}/profiles/analyze`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json'
+            },
             body: JSON.stringify(payload)
           });
           
-          if (!res.ok) throw new Error("API request failed");
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Server returned ${res.status}`);
+          }
           
           const data = await res.json();
           
@@ -435,7 +441,7 @@
           });
           
         } catch (e) {
-          alert("Error connecting to backend API. Make sure FastAPI is running on port 8000.");
+          alert(`Error connecting to backend API: ${e.message}. Make sure FastAPI is running on port 8000.`);
         } finally {
           btn.innerText = "Analyze Profile";
         }

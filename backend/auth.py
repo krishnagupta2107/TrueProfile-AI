@@ -10,16 +10,17 @@ To generate a key for development, run:
 The BYPASS_AUTH=true env var disables auth entirely for local dev.
 """
 import os
+from dotenv import load_dotenv
 from fastapi import Security, HTTPException, status, Depends
 from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import Session
+
+load_dotenv()
 
 from backend.database import get_db
 from backend.models.api_key import APIKey
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-BYPASS_AUTH = os.getenv("BYPASS_AUTH", "false").lower() == "true"
 
 
 def require_api_key(
@@ -28,9 +29,10 @@ def require_api_key(
 ):
     """
     FastAPI dependency that validates the X-API-Key header.
-    Skipped entirely when BYPASS_AUTH=true (for local development).
+    Skipped entirely when BYPASS_AUTH=true or not configured in dev.
     """
-    if BYPASS_AUTH:
+    bypass = os.getenv("BYPASS_AUTH", "true").lower() == "true"
+    if bypass:
         return "dev-bypass"
 
     if not api_key:

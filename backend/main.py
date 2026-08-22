@@ -1,5 +1,10 @@
 import os
 import logging
+from dotenv import load_dotenv
+
+# Load .env variables before any other imports
+load_dotenv()
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
