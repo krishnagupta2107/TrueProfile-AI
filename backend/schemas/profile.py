@@ -4,8 +4,9 @@ from datetime import datetime
 
 
 class ProfileByUsername(BaseModel):
-    """Request to analyze a profile by username only."""
+    """Request to analyze a profile by username and platform only."""
     username: str
+    platform: Optional[str] = "instagram"
 
 
 class ProfileCreate(BaseModel):

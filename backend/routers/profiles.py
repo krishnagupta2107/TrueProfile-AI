@@ -54,8 +54,8 @@ def analyze_by_username(
     then runs it through the full ML pipeline.
     Rate limited to 20 requests/minute per IP.
     """
-    # 1. Ingest profile features from username
-    profile_data = ingest_profile_by_username(payload.username)
+    # 1. Ingest profile features from username & platform
+    profile_data = ingest_profile_by_username(payload.username, platform=payload.platform or "instagram")
 
     # 2. Run ML pipeline
     analysis_result = analyzer_service.analyze_profile(profile_data)
