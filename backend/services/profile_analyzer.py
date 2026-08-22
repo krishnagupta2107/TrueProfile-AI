@@ -56,26 +56,85 @@ class ProfileAnalyzerService:
     def _generate_evidence(self, scores: dict, profile_data: dict) -> list:
         evidence = []
 
-        if scores["behavior"] > 0.7:
-            evidence.append("Unusual posting frequency or follow behavior detected")
-        if scores["metadata"] > 0.7:
-            evidence.append("Account is very new or has low profile completeness")
-        if scores["deepfake"] > 0.7:
-            evidence.append("Possible synthetic or AI-generated profile image detected")
-        if scores["network"] > 0.7:
-            evidence.append("Abnormal follower/following ratio or network clustering")
-        if scores["face"] > 0.6:
-            evidence.append("Face similarity flag raised against known profiles")
+        followers = profile_data.get("followers", 0)
+        following = profile_data.get("following", 0)
+        age = profile_data.get("account_age_days", 0)
+        posts_per_day = profile_data.get("posts_per_day", 0.0)
+        completeness = profile_data.get("profile_completeness", 0.5)
+        follow_burst = profile_data.get("follow_burst_rate", 0.0)
+        engagement = profile_data.get("engagement_rate", 0.0)
+        variance = profile_data.get("posting_variance", 0.0)
 
-        follow_burst = profile_data.get("follow_burst_rate", 0)
-        if follow_burst > 0.6:
-            evidence.append("High follow/unfollow burst rate detected")
+        if scores.get("face", 0) >= 0.60:
+            evidence.append({
+                "signal": "ArcFace Biometrics",
+                "title": "Face Biometrics Anomaly Detected",
+                "severity": "HIGH" if scores["face"] >= 0.80 else "MEDIUM",
+                "score": f"{int(scores['face'] * 100)}%",
+                "detail": f"ArcFace facial geometry analysis returned a risk score of {int(scores['face'] * 100)}%. This occurs when no recognizable human face is detected in the profile photo, multiple conflicting faces exist, or embedding representations match synthetic bot clusters."
+            })
 
-        engagement = profile_data.get("engagement_rate", 1)
-        if engagement < 0.005:
-            evidence.append("Abnormally low engagement rate relative to follower count")
+        if scores.get("deepfake", 0) >= 0.70:
+            evidence.append({
+                "signal": "DeepFace Anti-Spoofing",
+                "title": "Potential Synthetic or AI-Generated Image",
+                "severity": "HIGH",
+                "score": f"{int(scores['deepfake'] * 100)}%",
+                "detail": f"Anti-spoofing neural net detected frequency domain compression anomalies or GAN synthesis artifacts (score: {int(scores['deepfake'] * 100)}%) typical of AI-generated faces (StyleGAN / Midjourney)."
+            })
+
+        if scores.get("behavior", 0) >= 0.60:
+            evidence.append({
+                "signal": "XGBoost Behavior Model",
+                "title": "Unusual Behavioral & Posting Telemetry",
+                "severity": "HIGH" if scores["behavior"] >= 0.80 else "MEDIUM",
+                "score": f"{int(scores['behavior'] * 100)}%",
+                "detail": f"The XGBoost model identified non-linear automated behavior signatures. Account exhibits a post velocity of {posts_per_day} posts/day and follow burst rate of {follow_burst:.2f}, matching automated script activity."
+            })
+
+        if scores.get("metadata", 0) >= 0.60:
+            evidence.append({
+                "signal": "Account Metadata",
+                "title": "Account Immaturity & Low Completeness",
+                "severity": "MEDIUM",
+                "score": f"{int(scores['metadata'] * 100)}%",
+                "detail": f"Account age ({age} days) and profile completeness ({int(completeness * 100)}%) indicate an incomplete setup frequently associated with disposable sock-puppet accounts."
+            })
+
+        if scores.get("network", 0) >= 0.60:
+            evidence.append({
+                "signal": "NetworkX Graph Topology",
+                "title": "Ego-Network & Ratio Asymmetry",
+                "severity": "HIGH" if scores["network"] >= 0.80 else "MEDIUM",
+                "score": f"{int(scores['network'] * 100)}%",
+                "detail": f"Network centrality and follower-to-following imbalance ({followers} followers vs {following} following) exhibit low reciprocity typical of spam-follow rings."
+            })
+
+        if follow_burst >= 0.60:
+            evidence.append({
+                "signal": "Activity Telemetry",
+                "title": "High Follow/Unfollow Burst Velocity",
+                "severity": "HIGH",
+                "score": f"{int(follow_burst * 100)}%",
+                "detail": f"Follow burst rate ({follow_burst:.2f}) is significantly above normal human thresholds (0.05-0.25), suggesting automated mass-following software was used."
+            })
+
+        if engagement <= 0.005 and followers >= 50:
+            evidence.append({
+                "signal": "Engagement Telemetry",
+                "title": "Abnormally Low Engagement Rate",
+                "severity": "MEDIUM",
+                "score": f"{engagement * 100:.2f}%",
+                "detail": f"Engagement rate ({engagement * 100:.2f}%) is disproportionately low relative to the audience size ({followers:,} followers), pointing toward inactive or ghost followers."
+            })
 
         if not evidence:
-            evidence.append("No significant anomalies detected")
+            evidence.append({
+                "signal": "Fusion Integrity",
+                "title": "No Significant Anomalies Detected",
+                "severity": "LOW",
+                "score": "0%",
+                "detail": "All visual biometrics, behavioral velocities, metadata fields, and network graph structures align with authentic human profile characteristics."
+            })
 
         return evidence

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 
 
@@ -44,7 +44,7 @@ class ProfileResponse(BaseModel):
     # Final outcome
     risk_score: Optional[float]
     risk_level: Optional[str]
-    evidence: List[str]
+    evidence: List[Any]
     recommended_action: Optional[str]
 
     # Audit
