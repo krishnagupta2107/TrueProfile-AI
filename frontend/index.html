@@ -430,9 +430,14 @@
                     </div>
                   </div>
 
-                  <button type="submit" id="scan-btn" class="mt-4 w-full bg-gold text-obsidian font-bold py-3.5 px-6 uppercase tracking-wider text-sm hover:bg-amber transition-all shadow-lg flex items-center justify-center gap-2">
-                    <span id="btn-text">Audit Real Profile Data</span>
-                  </button>
+                  <div class="flex items-center gap-3 pt-2">
+                    <button type="submit" id="scan-btn" class="flex-1 bg-gold text-obsidian font-bold py-3.5 px-4 uppercase tracking-wider text-sm hover:bg-amber transition-all shadow-lg flex items-center justify-center gap-2">
+                      <span id="btn-text">Audit Real Profile Data</span>
+                    </button>
+                    <button type="button" onclick="clearForm()" class="px-4 py-3.5 border border-gold/40 text-gold hover:bg-gold/10 font-mono text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5" title="Reset all input fields for a new entry">
+                      <span>↺ Clear</span>
+                    </button>
+                  </div>
                 </form>
               </div>
 
@@ -573,12 +578,40 @@
           document.getElementById('in-image-url').value = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
           document.getElementById('in-file').value = '';
         }
-      }
-
-      function setSlider(id, valId, val) {
-        const el = document.getElementById(id);
-        el.value = val;
-        document.getElementById(valId).innerText = parseFloat(val).toFixed(2);
+      function clearForm() {
+        document.getElementById('in-username').value = '';
+        document.getElementById('in-age').value = '';
+        document.getElementById('in-posts').value = '';
+        document.getElementById('in-followers').value = '';
+        document.getElementById('in-following').value = '';
+        setSlider('in-completeness', 'val-completeness', 0.50);
+        setSlider('in-burst', 'val-burst', 0.10);
+        setSlider('in-variance', 'val-variance', 0.20);
+        setSlider('in-engagement', 'val-engagement', 0.05);
+        document.getElementById('in-image-url').value = '';
+        document.getElementById('in-file').value = '';
+        
+        // Reset results panel
+        const resPanel = document.getElementById('demo-result');
+        resPanel.classList.add('opacity-50', 'pointer-events-none');
+        document.getElementById('res-score').innerText = '--';
+        document.getElementById('res-level').innerText = '--';
+        document.getElementById('res-level').className = 'text-xl lg:text-2xl font-bold uppercase';
+        document.getElementById('res-action').innerText = '--';
+        document.getElementById('res-action').className = 'inline-block mt-1 px-3 py-0.5 text-xs font-bold font-mono uppercase bg-royal/40 border border-gold/40 text-gold';
+        document.getElementById('res-handle').innerText = '@new_profile';
+        document.getElementById('tel-age').innerText = '--';
+        document.getElementById('tel-followers').innerText = '--';
+        document.getElementById('tel-following').innerText = '--';
+        document.getElementById('tel-posts').innerText = '--';
+        document.getElementById('sig-face').innerText = '--';
+        document.getElementById('sig-deepfake').innerText = '--';
+        document.getElementById('sig-behavior').innerText = '--';
+        document.getElementById('sig-meta').innerText = '--';
+        document.getElementById('sig-network').innerText = '--';
+        document.getElementById('res-evidence').innerHTML = '<li>Submit profile telemetry to generate risk evidence...</li>';
+        
+        document.getElementById('in-username').focus();
       }
 
       async function runManualAnalysis() {
