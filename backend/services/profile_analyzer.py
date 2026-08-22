@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from backend.ml.face_analysis import ArcFaceModel
 from backend.ml.deepfake_detector import RealDeepfakeDetector
-from backend.ml.behavior_model import DummyBehaviorModel
+from backend.ml.behavior_model import RealBehaviorModel
 from backend.ml.metadata_model import DummyMetadataModel
 from backend.ml.network_analysis import DummyNetworkAnalysisModel
 from backend.ml.fusion_engine import FusionEngine
@@ -11,7 +11,7 @@ class ProfileAnalyzerService:
     def __init__(self):
         self.face_model = ArcFaceModel()
         self.deepfake_model = RealDeepfakeDetector()
-        self.behavior_model = DummyBehaviorModel()
+        self.behavior_model = RealBehaviorModel()
         self.metadata_model = DummyMetadataModel()
         self.network_model = DummyNetworkAnalysisModel()
         self.fusion_engine = FusionEngine()

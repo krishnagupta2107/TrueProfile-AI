@@ -8,3 +8,5 @@ httpx==0.27.0
 deepface
 tf-keras
 opencv-python-headless
+xgboost
+scikit-learn
