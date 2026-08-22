@@ -11,3 +11,5 @@ opencv-python-headless
 xgboost
 scikit-learn
 networkx
+psycopg2-binary
+alembic

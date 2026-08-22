@@ -9,14 +9,29 @@ app = FastAPI(title="TrueProfile AI", version="1.0.0")
 # CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust in production
+    allow_origins=["*"],  # Tighten in production: list specific frontend URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Create tables on startup
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def run_migrations():
+    """
+    Apply all pending Alembic migrations at startup.
+    This is the production-safe way to keep the schema up-to-date
+    (as opposed to create_all which would silently skip schema changes).
+    """
+    from alembic.config import Config
+    from alembic import command
+    import os
+
+    alembic_cfg = Config(os.path.join(os.path.dirname(os.path.dirname(__file__)), "alembic.ini"))
+    alembic_cfg.set_main_option(
+        "script_location",
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "alembic")
+    )
+    command.upgrade(alembic_cfg, "head")
 
 app.include_router(profiles.router)
 

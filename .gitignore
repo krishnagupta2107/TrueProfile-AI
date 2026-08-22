@@ -8,3 +8,7 @@ env/
 /ppt
 frontend/design/design.md
 frontend/design/prompt.md
+
+# Environment variables
+.env
+*.env
