@@ -56,7 +56,7 @@ class RealDeepfakeDetector(BaseModelInterface):
             print(f"Deepfake detection error: {e}")
             risk_score = 0.5
         finally:
-            if os.path.exists(img_path):
+            if img_path and "temp_" in os.path.basename(img_path) and os.path.exists(img_path):
                 try:
                     os.remove(img_path)
                 except:
@@ -65,23 +65,36 @@ class RealDeepfakeDetector(BaseModelInterface):
         return round(risk_score, 2)
 
     def _download_image(self, url: str) -> str:
+        # 1. Direct local file path
+        if os.path.isfile(url):
+            return url
+
+        # 2. Local uploads endpoint path resolution (avoid HTTP self-deadlock)
+        if "/uploads/" in url:
+            filename = url.split("/uploads/")[-1]
+            local_path = os.path.join("uploads", filename)
+            if os.path.isfile(local_path):
+                return local_path
+
+        # 3. Simulated test URLs
         if "example.com" in url or not url.startswith("http"):
             return self._create_dummy_image(url)
 
+        # 4. Remote HTTP/HTTPS download
         try:
-            response = httpx.get(url, timeout=5.0)
+            response = httpx.get(url, timeout=6.0, follow_redirects=True)
             if response.status_code == 200:
-                temp_name = f"temp_df_{hash(url)}.jpg"
+                temp_name = f"temp_df_{abs(hash(url))}.jpg"
                 with open(temp_name, "wb") as f:
                     f.write(response.content)
                 return temp_name
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Deepfake image download error for {url}: {e}")
         return ""
-        
+
     def _create_dummy_image(self, url: str) -> str:
         import cv2
-        temp_name = f"temp_mock_df_{hash(url)}.jpg"
+        temp_name = f"temp_mock_df_{abs(hash(url))}.jpg"
         img = np.zeros((200, 200, 3), dtype=np.uint8)
         img[:] = (200, 200, 200)
         cv2.imwrite(temp_name, img)

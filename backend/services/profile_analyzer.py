@@ -65,13 +65,21 @@ class ProfileAnalyzerService:
         engagement = profile_data.get("engagement_rate", 0.0)
         variance = profile_data.get("posting_variance", 0.0)
 
-        if scores.get("face", 0) >= 0.60:
+        if scores.get("face", 0) <= 0.30 and profile_data.get("profile_image_url"):
+            evidence.append({
+                "signal": "ArcFace Biometrics",
+                "title": "Authentic Human Face Verified",
+                "severity": "LOW",
+                "score": f"{int(scores['face'] * 100)}%",
+                "detail": f"ArcFace detected a clear, single-subject human facial structure with natural embedding geometry (Biometric risk: {int(scores['face'] * 100)}%)."
+            })
+        elif scores.get("face", 0) >= 0.60:
             evidence.append({
                 "signal": "ArcFace Biometrics",
                 "title": "Face Biometrics Anomaly Detected",
                 "severity": "HIGH" if scores["face"] >= 0.80 else "MEDIUM",
                 "score": f"{int(scores['face'] * 100)}%",
-                "detail": f"ArcFace facial geometry analysis returned a risk score of {int(scores['face'] * 100)}%. This occurs when no recognizable human face is detected in the profile photo, multiple conflicting faces exist, or embedding representations match synthetic bot clusters."
+                "detail": f"ArcFace returned an elevated risk score of {int(scores['face'] * 100)}%. No recognizable human face was detected in the uploaded avatar, or multiple conflicting subjects were found."
             })
 
         if scores.get("deepfake", 0) >= 0.70:

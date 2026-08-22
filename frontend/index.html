@@ -712,6 +712,19 @@
           return;
         }
 
+        const hasFile = fileInput.files && fileInput.files.length > 0;
+        const hasUrl = imageUrl !== '';
+
+        if (!hasFile && !hasUrl) {
+          showDialog(
+            'Profile Photo Required',
+            'Please upload a profile photo (JPG, PNG, WebP) or provide an image URL to execute visual biometric and deepfake anti-spoofing analysis.',
+            'warning',
+            ['Profile Photo Upload (File)', 'Or Hosted Image URL (Link)']
+          );
+          return;
+        }
+
         const username = document.getElementById('in-username').value.trim() || 'unnamed_account';
         const formData = new FormData();
         formData.append('username', username);
