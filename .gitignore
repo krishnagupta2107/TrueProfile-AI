@@ -5,3 +5,6 @@ trueprofile.db
 venv/
 env/
 .pytest_cache/
+/ppt
+frontend/design/design.md
+frontend/design/prompt.md
